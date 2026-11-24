@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo_dark.svg">
+    <img src="assets/logo.svg" alt="PanBase" width="440">
+  </picture>
+</p>
+
 <div align="center">
 <h2>Change the Base, Change the Game: Rethinking Pan-sharpening</h2>
 
@@ -35,8 +42,50 @@
 
 ## 📧 News
 - **Nov 2026:** The code, the PanBase coefficients and the 129 checkpoints of the paper's 15 backbones are released.
+- **Nov 2026:** The [project page](https://kaist-viclab.github.io/PanBase_site/) is online.
+
+## 📖 Abstract
+Many pan-sharpening (PS) networks reconstruct high-resolution multispectral (HRMS) images by adding learned residuals to 4×-interpolated low-resolution multispectral (LRMS) inputs, incorporating panchromatic (PAN) detail only through these residual corrections. This raises a simple question: *Why start with a blurry base when sharp spatial detail is already available?* We propose **PanBase**, a sharper multispectral starting point designed for more effective residual learning. Guided by physical sensor characteristics, PanBase combines PAN spatial detail with LRMS spectral information while enforcing consistency with the LRMS observations under sensor-specific blur. We construct this base without neural network training, estimating only nine coefficients per spectral band through closed-form calibration. Our PanBase can be easily integrated into existing backbones with a global residual skip through two simple changes: (i) replacing the skip base with PanBase and (ii) concatenating it as an additional input. Using each backbone's original training recipe and matched training budgets, PanBase improves most reduced- and full-resolution metrics on WorldView-3, QuickBird, and GaoFen-2, while achieving 4.4× faster training convergence on average. In zero-shot evaluation on WorldView-2, standalone PanBase achieves competitive reconstruction without target-sensor fitting or neural refinement.
+
+## 📊 Results
+Across ten backbones and four sensors, PanBase improves RR PSNR in 39 of 40 matched comparisons, by up to 6.93 dB, and reaches each original backbone's best score 4.4× faster on average. On its own, without a network, it outperforms all twelve classical methods compared.
+
+### Why Start with a Blurry Base?
+The interpolated LRMS (the conventional base) and PanBase against the HRMS ground truth, before any neural refinement. Unseen WV2 reuses the coefficients calibrated on WV3.
+
+<div align="center">
+    <img src="assets/teaser.jpg" alt="PAN, interpolated LRMS, PanBase and HRMS ground truth on GaoFen-2, QuickBird, WorldView-3 and unseen WorldView-2, with the PSNR of each base" width="100%">
+</div>
+
+### Qualitative Comparison
+Each pair compares an original backbone with its PanBase version: WV3 and QB at reduced resolution (PSNR, error insets), GF2 and unseen WV2 at full resolution (HQNR).
+
+<div align="center">
+    <img src="assets/visual.jpg" alt="Backbones without and with PanBase at reduced and full resolution" width="100%">
+</div>
+
+### Quantitative Comparison
+PanBase as a plug-in for ten backbones, under each backbone's training recipe and a matched budget. WV2† uses WV3-trained models without fine-tuning.
+
+<div align="center">
+    <img src="assets/table1_backbones.png" alt="Table 1: PanBase as a plug-in for 10 backbones" width="100%">
+</div>
+<br>
+
+Standalone PanBase against classical pan-sharpening; no method uses a neural network.
+
+<div align="center">
+    <img src="assets/table2_classical.png" alt="Table 2: Classical pan-sharpening versus standalone PanBase" width="100%">
+</div>
+
+**Please visit our [project page](https://kaist-viclab.github.io/PanBase_site/) for the interactive gallery and more results.**
 
 ## 🖼️ Method Overview
+
+<div align="center">
+    <img src="assets/framework.jpg" alt="Overview of PanBase: building the base, then plugging it into a backbone" width="100%">
+</div>
+
 Most pan-sharpening networks predict a residual on top of the interpolated low-resolution MS image
 (`x̂ = x_ms↑ + f_θ(x_pan, x_ms)`). **PanBase** replaces that blurry starting point with a calibrated,
 observation-consistent physical estimate **s**, computed without any network in under a second per 256 × 256 image on a
@@ -165,11 +214,48 @@ PanBase/
 ├── LICENSE-WEIGHTS.md          # licences of the weights
 ├── NOTICE.md                   # third-party notices
 ├── CUDA_OPS.md                 # CUDA extensions (MMMamba, TS-Pan)
-└── environment.yml
+├── environment.yml
+└── assets/                     # figures and logo of this README
 ```
 
 ## 📑 Citation
-The BibTeX entry will be added once the paper is on arXiv.
+If you find PanBase useful, please consider citing:
+```BibTeX
+@article{do2026panbase,
+  title={Change the Base, Change the Game: Rethinking Pan-sharpening},
+  author={Do, Jeonghyeok and Youk, Geunhyuk and Kim, Munchurl},
+  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  year={2026}
+}
+```
+
+### Prior work
+
+**[U-Know-DiffPAN](https://github.com/KAIST-VICLab/U-Know-DiffPAN)** ([project page](https://kaist-viclab.github.io/U-Know-DiffPAN-site/)), CVPR 2025: PAN-sharpening with uncertainty-aware knowledge distillation.
+
+```BibTeX
+@inproceedings{kim2025uknowdiffpan,
+  title={U-Know-DiffPAN: An uncertainty-aware knowledge distillation diffusion framework with details enhancement for PAN-sharpening},
+  author={Kim, Sungpyo and Do, Jeonghyeok and Lee, Jaehyup and Kim, Munchurl},
+  booktitle={2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages={23069--23079},
+  year={2025},
+  organization={IEEE}
+}
+```
+
+**[PAN-Crafter](https://github.com/KAIST-VICLab/PAN-Crafter)** ([project page](https://kaist-viclab.github.io/PAN-Crafter_site/)), ICCV 2025: PAN-sharpening with modality-consistent alignment.
+
+```BibTeX
+@inproceedings{do2025pancrafter,
+  title={PAN-Crafter: Learning modality-consistent alignment for PAN-sharpening},
+  author={Do, Jeonghyeok and Kim, Sungpyo and Youk, Geunhyuk and Lee, Jaehyup and Kim, Munchurl},
+  booktitle={2025 IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages={4242--4252},
+  year={2025},
+  organization={IEEE}
+}
+```
 
 ## 📜 License
 
