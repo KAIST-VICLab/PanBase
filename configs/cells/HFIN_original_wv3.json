@@ -1,0 +1,53 @@
+{
+ "method": "HFIN",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "HFIN",
+ "weights": "backbones/HFIN/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 412000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model HFIN --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method HFIN --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/HFIN/original/wv3_reduced",
+  "python scripts/infer.py --method HFIN --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/HFIN/original/wv3_full",
+  "python scripts/infer.py --method HFIN --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/HFIN/original/wv2_reduced",
+  "python scripts/infer.py --method HFIN --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/HFIN/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 36.52766799926758,
+    "ssim": 0.9695758819580078,
+    "sam": 3.313899864210375,
+    "ergas": 2.46441912651062,
+    "q2n": 0.8986590705980868
+   },
+   "fr": {
+    "d_lambda": 0.029973226638664696,
+    "d_s": 0.055558574059100106,
+    "hqnr": 0.9165091395963108
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.38739585876465,
+    "ssim": 0.8135477900505066,
+    "sam": 5.86920716201031,
+    "ergas": 4.747394561767578,
+    "q2n": 0.8122766991054071
+   },
+   "fr": {
+    "d_lambda": 0.05035445090999222,
+    "d_s": 0.0487902743766851,
+    "hqnr": 0.9034248381459868
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU; on GPU disable TF32 (cuDNN and matmul) -- with TF32 on, its FFT layers drift by up to several dB; with TF32 off the GPU result matches the CPU one.",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

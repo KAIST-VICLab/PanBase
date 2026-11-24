@@ -1,0 +1,66 @@
+{
+ "method": "TS-Pan",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "TS-Pan",
+ "weights": "backbones/TS-Pan/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 494000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 16,
+  "code_digest": "f80d1e18d0585e7b",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 456317,
+  "per_dataset": null,
+  "sched": {
+   "gamma": 0.5,
+   "kind": "step",
+   "step_size": 100
+  },
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model TS-Pan --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method TS-Pan --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/TS-Pan/original/qb_reduced",
+  "python scripts/infer.py --method TS-Pan --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/TS-Pan/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 38.52729034423828,
+    "ssim": 0.963404655456543,
+    "sam": 4.332789576793874,
+    "ergas": 3.478588104248047,
+    "q2n": 0.9383835254630771
+   },
+   "fr": {
+    "d_lambda": 0.140218060049219,
+    "d_s": 0.13568847526453034,
+    "hqnr": 0.7433404800877923
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

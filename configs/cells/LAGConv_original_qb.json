@@ -1,0 +1,37 @@
+{
+ "method": "LAGConv",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "LAGConv",
+ "weights": "backbones/LAGConv/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 260000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model LAGConv --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method LAGConv --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/LAGConv/original/qb_reduced",
+  "python scripts/infer.py --method LAGConv --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/LAGConv/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 37.95766067504883,
+    "ssim": 0.9598056674003601,
+    "sam": 4.535705387634823,
+    "ergas": 3.7272439002990723,
+    "q2n": 0.9344394873399698
+   },
+   "fr": {
+    "d_lambda": 0.024472265932959057,
+    "d_s": 0.053942085121918906,
+    "hqnr": 0.9228617122596677
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

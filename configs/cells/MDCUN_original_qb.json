@@ -1,0 +1,61 @@
+{
+ "method": "MDCUN",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "MDCUN",
+ "weights": "backbones/MDCUN/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1166000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "418c3a7fca884454",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": 2,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1_sum_over_2b",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0005
+  },
+  "out_index": null,
+  "params": 128443,
+  "per_dataset": null,
+  "sched": null,
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model MDCUN --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MDCUN --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/MDCUN/original/qb_reduced",
+  "python scripts/infer.py --method MDCUN --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/MDCUN/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 35.987945556640625,
+    "ssim": 0.9450876116752625,
+    "sam": 4.9154534939356065,
+    "ergas": 4.7343926429748535,
+    "q2n": 0.9153335476391739
+   },
+   "fr": {
+    "d_lambda": 0.032071016769653744,
+    "d_s": 0.05640169070476998,
+    "hqnr": 0.9135650023173512
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

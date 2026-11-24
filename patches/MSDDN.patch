@@ -1,0 +1,20 @@
+--- a/model/msddn.py
++++ b/model/msddn.py
+@@ -113,7 +113,7 @@
+         self.fuse4 = nn.Sequential(nn.Conv2d(2*channels,channels,3,1,1),nn.ReLU(),nn.Conv2d(channels,channels,1,1,0))
+         self.fuse5 = nn.Sequential(nn.Conv2d(2*channels,channels,3,1,1),nn.ReLU(),nn.Conv2d(channels,channels,1,1,0))
+         self.fuse6 = nn.Sequential(nn.Conv2d(2*channels,channels,3,1,1),nn.ReLU(),nn.Conv2d(channels,channels,1,1,0))
+-        self.msconv = nn.Conv2d(4,channels,3,1,1)# conv for ms
++        self.msconv = nn.Conv2d(num_channels,channels,3,1,1)# conv for ms
+         self.panconv = nn.Conv2d(1,channels,3,1,1)
+         self.conv0 = HinResBlock(channels,channels)
+         self.conv1 = HinResBlock(channels,channels)
+@@ -122,7 +122,7 @@
+         self.fft1 = Freprocess(channels)
+         self.fft2 = Freprocess(channels)
+         self.fft3 = Freprocess(channels)
+-        self.conv_out = Refine(channels,4)
++        self.conv_out = Refine(channels,num_channels)
+         self.down_pan1 = nn.Conv2d(channels,channels,3,2,1)
+         self.down_spa1 = nn.Conv2d(channels,channels,3,2,1)
+         self.down_spa2 = nn.Conv2d(channels, channels, 3, 2, 1)

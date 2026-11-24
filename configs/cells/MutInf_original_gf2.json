@@ -1,0 +1,58 @@
+{
+ "method": "MutInf",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "MutInf",
+ "weights": "backbones/MutInf/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1432000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "06d50b0357cbf564",
+  "epochs": 1000,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "kind": "adam",
+   "lr": 0.001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 118904,
+  "per_dataset": null,
+  "sched": null,
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model MutInf --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MutInf --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/MutInf/original/gf2_reduced",
+  "python scripts/infer.py --method MutInf --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/MutInf/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 36.6544303894043,
+    "ssim": 0.9545310735702515,
+    "sam": 1.3515680843253475,
+    "ergas": 1.3931328058242798,
+    "q2n": 0.9412969598018005
+   },
+   "fr": {
+    "d_lambda": 0.022787475982640387,
+    "d_s": 0.0354679674483482,
+    "hqnr": 0.9425663513927113
+   }
+  }
+ },
+ "runtime_note": "upstream code calls .cuda(); the released code leaves four scalars of utils/CDC.py uninitialised -- they are part of this state dict, so inference from this checkpoint is deterministic.",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

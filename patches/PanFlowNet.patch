@@ -1,0 +1,36 @@
+diff --git a/model/pan_inn9.py b/model/pan_inn9.py
+index 24150a4..753c953 100644
+--- a/model/pan_inn9.py
++++ b/model/pan_inn9.py
+@@ -143,7 +143,9 @@ class subnet_coupling_layer(nn.Module):
+     def __init__(self, dims_in, F_class, condition_length, clamp=5.):
+         super().__init__()
+ 
+-        channels = 4
++        # [수정] 원본은 dims_in 을 받아 놓고 무시한 채 channels=4 를 박았다.
++        # 인자를 실제로 쓰게만 바꾼다 -- dims_in=4 로 부르면 원본과 완전히 동일하다.
++        channels = dims_in
+         self.ndims = 3
+         self.split_len1 = channels // 2
+         self.split_len2 = channels - channels // 2
+@@ -200,7 +202,8 @@ class subnet_coupling_layer(nn.Module):
+     
+ 
+ class pan_inn(nn.Module):
+-    def __init__(self, mid_channels=64, T = 4):
++    def __init__(self, mid_channels=64, T = 4, bands=4):
++        # [수정] bands 인자 추가.  기본값 4 라 저장소 호출은 그대로 동작한다.
+         super().__init__()
+ 
+         print("now: pan_inn9")
+@@ -211,7 +214,9 @@ class pan_inn(nn.Module):
+         # T = 4
+         # todo
+         operations = []
+-        b = subnet_coupling_layer(dims_in=4 , F_class=subnet('HIN_CA'), condition_length=5)
++        # condition_length 는 조건 텐서 cat([hms, pan]) 의 채널 수 = bands + 1 이다.
++        b = subnet_coupling_layer(dims_in=bands, F_class=subnet('HIN_CA'),
++                                  condition_length=bands + 1)
+         for _ in range(T):
+             # b = subnet_coupling_layer(dims_in=4 , F_class=subnet('HIN_CA'), condition_length=5)
+             operations.append(b)

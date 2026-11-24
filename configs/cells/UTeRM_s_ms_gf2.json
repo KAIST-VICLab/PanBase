@@ -1,0 +1,66 @@
+{
+ "method": "UTeRM",
+ "arm": "s_ms",
+ "train_set": "gf2",
+ "registry_spec": "UTeRM-in",
+ "weights": "backbones/UTeRM/s_ms/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1934000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": "d4",
+  "aux_weights": null,
+  "batch": 1,
+  "code_digest": "6fa7744cfe0eef1c",
+  "epochs": 100,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30+tile64",
+  "grad_clip": 2.0,
+  "loss": "l1",
+  "opt": {
+   "kind": "adam",
+   "lr": 1e-05
+  },
+  "out_index": null,
+  "params": 4310636,
+  "per_dataset": null,
+  "sched": null,
+  "skip": "S_MS",
+  "skipvar": {
+   "base": "UTeRM",
+   "extra": "L",
+   "kind": "in",
+   "sites": [
+    "net.att_module.att1"
+   ]
+  },
+  "val_cap": 256
+ },
+ "prepare": "python scripts/make_bases.py --dataset gf2 --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model UTeRM-in --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_MS --tag _skipS_MS --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method UTeRM --arm s_ms --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/UTeRM/s_ms/gf2_reduced",
+  "python scripts/infer.py --method UTeRM --arm s_ms --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/UTeRM/s_ms/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 42.68697738647461,
+    "ssim": 0.97944176197052,
+    "sam": 0.7904030595906985,
+    "ergas": 0.696466326713562,
+    "q2n": 0.9807656907741853
+   },
+   "fr": {
+    "d_lambda": 0.00018710274030070417,
+    "d_s": 0.02588228635817811,
+    "hqnr": 0.9739356483211884
+   }
+  }
+ },
+ "runtime_note": "upstream code allocates on CUDA inside forward; evaluated on non-overlapping 64x64 tiles (harness.eval_forward).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

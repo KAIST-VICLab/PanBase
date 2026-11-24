@@ -1,0 +1,53 @@
+{
+ "method": "UTeRM",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "UTeRM",
+ "weights": "backbones/UTeRM/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 970000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model UTeRM --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method UTeRM --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/UTeRM/original/wv3_reduced",
+  "python scripts/infer.py --method UTeRM --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/UTeRM/original/wv3_full",
+  "python scripts/infer.py --method UTeRM --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/UTeRM/original/wv2_reduced",
+  "python scripts/infer.py --method UTeRM --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/UTeRM/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 35.95598602294922,
+    "ssim": 0.9629911184310913,
+    "sam": 3.390832588010295,
+    "ergas": 2.591296911239624,
+    "q2n": 0.9025473822315202
+   },
+   "fr": {
+    "d_lambda": 0.01650784832412336,
+    "d_s": 0.04217221383465111,
+    "hqnr": 0.94213836765487
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.849700927734375,
+    "ssim": 0.8347105979919434,
+    "sam": 5.734197944337395,
+    "ergas": 4.484616279602051,
+    "q2n": 0.8349785718026499
+   },
+   "fr": {
+    "d_lambda": 0.031882705998979306,
+    "d_s": 0.014436637779436084,
+    "hqnr": 0.95426942425454
+   }
+  }
+ },
+ "runtime_note": "upstream code allocates on CUDA inside forward; evaluated on non-overlapping 64x64 tiles (harness.eval_forward).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

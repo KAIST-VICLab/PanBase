@@ -1,0 +1,73 @@
+{
+ "method": "PanFlowNet",
+ "arm": "s_ms",
+ "train_set": "gf2",
+ "registry_spec": "PanFlowNet-in",
+ "weights": "backbones/PanFlowNet/s_ms/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1070000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "b374cfab07a97be4",
+  "epochs": 1100,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 0.04,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0005
+  },
+  "out_index": null,
+  "params": 92218,
+  "per_dataset": null,
+  "sched": null,
+  "skip": "S_MS",
+  "skipvar": {
+   "base": "PanFlowNet-sk",
+   "extra": "S",
+   "kind": "in",
+   "sites": [
+    "operations.0.s1.hin.conv1",
+    "operations.0.s1.hin.conv3",
+    "operations.0.s2.hin.conv1",
+    "operations.0.s2.hin.conv3"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset gf2 --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model PanFlowNet-in --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_MS --tag _skipS_MS --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanFlowNet --arm s_ms --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/PanFlowNet/s_ms/gf2_reduced",
+  "python scripts/infer.py --method PanFlowNet --arm s_ms --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/PanFlowNet/s_ms/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 40.18635559082031,
+    "ssim": 0.9674347639083862,
+    "sam": 0.9716240671303078,
+    "ergas": 0.865742027759552,
+    "q2n": 0.9640487249486747
+   },
+   "fr": {
+    "d_lambda": 0.007041547950483107,
+    "d_s": 0.05982135590906666,
+    "hqnr": 0.9335545675344378
+   }
+  }
+ },
+ "runtime_note": "stochastic (normalising-flow sampling); torch.manual_seed(0) before each test image reproduces the table PSNR within 0.15 dB.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

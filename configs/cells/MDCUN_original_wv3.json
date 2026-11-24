@@ -1,0 +1,53 @@
+{
+ "method": "MDCUN",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "MDCUN",
+ "weights": "backbones/MDCUN/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 310000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MDCUN --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MDCUN --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/MDCUN/original/wv3_reduced",
+  "python scripts/infer.py --method MDCUN --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/MDCUN/original/wv3_full",
+  "python scripts/infer.py --method MDCUN --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/MDCUN/original/wv2_reduced",
+  "python scripts/infer.py --method MDCUN --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/MDCUN/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 36.94514465332031,
+    "ssim": 0.9708658456802368,
+    "sam": 3.0801262736885713,
+    "ergas": 2.311347484588623,
+    "q2n": 0.9156011177946354
+   },
+   "fr": {
+    "d_lambda": 0.007968502719044496,
+    "d_s": 0.03136824454120862,
+    "hqnr": 0.9609192534267068
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.96224021911621,
+    "ssim": 0.8263263702392578,
+    "sam": 5.399500168720633,
+    "ergas": 4.445183753967285,
+    "q2n": 0.8367928163237677
+   },
+   "fr": {
+    "d_lambda": 0.015625733216571385,
+    "d_s": 0.047276478148321664,
+    "hqnr": 0.9378115297029097
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

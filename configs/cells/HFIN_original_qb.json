@@ -1,0 +1,37 @@
+{
+ "method": "HFIN",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "HFIN",
+ "weights": "backbones/HFIN/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 436000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model HFIN --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method HFIN --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/HFIN/original/qb_reduced",
+  "python scripts/infer.py --method HFIN --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/HFIN/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 35.168601989746094,
+    "ssim": 0.9263074994087219,
+    "sam": 5.445514451546439,
+    "ergas": 5.34774923324585,
+    "q2n": 0.8919846031246342
+   },
+   "fr": {
+    "d_lambda": 0.10242813687359016,
+    "d_s": 0.11411899642575193,
+    "hqnr": 0.7955719354638384
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU; on GPU disable TF32 (cuDNN and matmul) -- with TF32 on, its FFT layers drift by up to several dB; with TF32 off the GPU result matches the CPU one.",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

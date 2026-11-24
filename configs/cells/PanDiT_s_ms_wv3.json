@@ -1,0 +1,111 @@
+{
+ "method": "PanDiT",
+ "arm": "s_ms",
+ "train_set": "wv3",
+ "registry_spec": "PanDiT-in",
+ "weights": "backbones/PanDiT/s_ms/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 30000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 6,
+  "code_digest": "724e5896c1885204",
+  "epochs": 124,
+  "eval_after_frac": 0.099,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30+tile64",
+  "grad_clip": 1.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adamw",
+   "lr": 5e-05,
+   "weight_decay": 0.0001
+  },
+  "out_index": null,
+  "params": 393016344,
+  "per_dataset": {
+   "gf2": {
+    "epochs": 61,
+    "sched": {
+     "milestones": [
+      30
+     ]
+    }
+   },
+   "qb": {
+    "epochs": 70,
+    "sched": {
+     "milestones": [
+      35
+     ]
+    }
+   }
+  },
+  "sched": {
+   "gamma": 0.2,
+   "kind": "multistep",
+   "milestones": [
+    62
+   ]
+  },
+  "skip": "S_MS",
+  "skipvar": {
+   "base": "PanDiT",
+   "extra": "L",
+   "kind": "in",
+   "sites": [
+    "net.dit.layers.0.cond_inj.ms_conv.body.1",
+    "ema_net.dit.layers.0.cond_inj.ms_conv.body.1"
+   ]
+  },
+  "val_cap": 64
+ },
+ "prepare": "python scripts/make_bases.py --dataset wv3 --split train,valid,reduced,full && python scripts/make_bases.py --dataset wv2 --split reduced,full",
+ "train": "python train_pancoll.py --model PanDiT-in --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_MS --tag _skipS_MS --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanDiT --arm s_ms --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/PanDiT/s_ms/wv3_reduced",
+  "python scripts/infer.py --method PanDiT --arm s_ms --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/PanDiT/s_ms/wv3_full",
+  "python scripts/infer.py --method PanDiT --arm s_ms --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/PanDiT/s_ms/wv2_reduced",
+  "python scripts/infer.py --method PanDiT --arm s_ms --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/PanDiT/s_ms/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 36.47230911254883,
+    "ssim": 0.9664255380630493,
+    "sam": 3.297199831140489,
+    "ergas": 2.4539873600006104,
+    "q2n": 0.9042224631802063
+   },
+   "fr": {
+    "d_lambda": 0.00147300397369029,
+    "d_s": 0.036646109163303554,
+    "hqnr": 0.9619345881674042
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 30.367446899414062,
+    "ssim": 0.8724324107170105,
+    "sam": 5.111767027733589,
+    "ergas": 3.69492769241333,
+    "q2n": 0.874336700974699
+   },
+   "fr": {
+    "d_lambda": 0.000998667845000245,
+    "d_s": 0.03749338417393829,
+    "hqnr": 0.9615458243220658
+   }
+  }
+ },
+ "runtime_note": "diffusion sampler; with torch.manual_seed(0) before each test image a CUDA run reproduces the table PSNR exactly (re-runs of 2026-11-23/24); CPU sampling draws a different random stream. About 90-110 s per 20-image test set on an RTX 4090, within 6 GB of GPU memory; 1-2.5 h on a 16-core CPU.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

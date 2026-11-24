@@ -1,0 +1,83 @@
+{
+ "method": "HFIN",
+ "arm": "s_pan",
+ "train_set": "wv3",
+ "registry_spec": "HFIN-in",
+ "weights": "backbones/HFIN/s_pan/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 526000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "76316be5529f337b",
+  "epochs": 1000,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "kind": "adam",
+   "lr": 0.001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 192274,
+  "per_dataset": null,
+  "sched": null,
+  "skip": "S_PAN",
+  "skipvar": {
+   "base": "HFIN-sk",
+   "extra": "S",
+   "kind": "in",
+   "sites": [
+    "process.conv_p1"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset wv3 --split train,valid,reduced,full && python scripts/make_bases.py --dataset wv2 --split reduced,full",
+ "train": "python train_pancoll.py --model HFIN-in --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_PAN --tag _skipS_PAN --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method HFIN --arm s_pan --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/HFIN/s_pan/wv3_reduced",
+  "python scripts/infer.py --method HFIN --arm s_pan --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/HFIN/s_pan/wv3_full",
+  "python scripts/infer.py --method HFIN --arm s_pan --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/HFIN/s_pan/wv2_reduced",
+  "python scripts/infer.py --method HFIN --arm s_pan --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/HFIN/s_pan/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 37.26365661621094,
+    "ssim": 0.9720005989074707,
+    "sam": 3.030852270511061,
+    "ergas": 2.232599973678589,
+    "q2n": 0.9165516085795877
+   },
+   "fr": {
+    "d_lambda": 0.00501059386032125,
+    "d_s": 0.030076606804833088,
+    "hqnr": 0.9650850626393315
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 29.467708587646484,
+    "ssim": 0.8413413763046265,
+    "sam": 5.234570107874049,
+    "ergas": 4.183437347412109,
+    "q2n": 0.8489557837653068
+   },
+   "fr": {
+    "d_lambda": 0.007575940897767386,
+    "d_s": 0.04106319115545206,
+    "hqnr": 0.9516521207687747
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU; on GPU disable TF32 (cuDNN and matmul) -- with TF32 on, its FFT layers drift by up to several dB; with TF32 off the GPU result matches the CPU one.",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

@@ -1,0 +1,53 @@
+{
+ "method": "MSDDN",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "MSDDN",
+ "weights": "backbones/MSDDN/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1008000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MSDDN --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MSDDN --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/MSDDN/original/wv3_reduced",
+  "python scripts/infer.py --method MSDDN --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/MSDDN/original/wv3_full",
+  "python scripts/infer.py --method MSDDN --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/MSDDN/original/wv2_reduced",
+  "python scripts/infer.py --method MSDDN --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/MSDDN/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 35.615211486816406,
+    "ssim": 0.965478777885437,
+    "sam": 3.493555124921721,
+    "ergas": 2.6846747398376465,
+    "q2n": 0.8967555323211535
+   },
+   "fr": {
+    "d_lambda": 0.021494947937892216,
+    "d_s": 0.02336706342506572,
+    "hqnr": 0.9557710326659462
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.646106719970703,
+    "ssim": 0.8303767442703247,
+    "sam": 5.733257475596158,
+    "ergas": 4.592128753662109,
+    "q2n": 0.8235389537051934
+   },
+   "fr": {
+    "d_lambda": 0.0426318819571801,
+    "d_s": 0.027890067408306008,
+    "hqnr": 0.9307135978350768
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU. On GPU this network's output differs from the CPU result by 0.9-10 dB PSNR even with TF32 disabled (FFT branch; checked 2026-11-23), so evaluate it on CPU (about 15-30 s per test set).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

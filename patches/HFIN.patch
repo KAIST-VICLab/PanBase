@@ -1,0 +1,42 @@
+diff --git a/model/HFIN.py b/model/HFIN.py
+index 5e0a379..635a3c3 100644
+--- a/model/HFIN.py
++++ b/model/HFIN.py
+@@ -202,8 +202,14 @@ class STFreprocess(nn.Module):
+     def forward(self, msf, panf):
+ 
+         _, _, H, W = msf.shape
+-        s1 = 43
+-        s2 = 42
++        # [수정] 원본은 s1=43, s2=42 로 128x128 입력에만 맞는 창 분할을 박아 두었다.
++        # 이 논문의 기여는 "겹치는 4창 단시간 푸리에 분해" 자체이지 그 절대 크기가 아니므로,
++        # 같은 겹침 비율(43:128)을 유지한 채 입력 크기에 비례시킨다.  분할이 정확히 재조립
++        # 되려면 2*s1 + s2 == H 여야 하고(원본: 2*43+42=128), 아래가 그 조건을 만족한다.
++        # H=128 이면 s1=43, s2=42 로 원본과 비트 단위로 같다.
++        s1 = max(1, round(H * 43 / 128))
++        s2 = H - 2 * s1
++        assert s2 > 0 and s1 + s2 == H - s1, (H, s1, s2)
+         # split
+         msfa = msf[:, :, :s1+s2, :s1+s2]
+         msfb = msf[:, :, :s1+s2, s1:]
+@@ -413,7 +419,10 @@ class FeatureProcess(nn.Module):
+     def __init__(self, channels):
+         super(FeatureProcess, self).__init__()
+ 
+-        self.conv_p = nn.Conv2d(4, channels, 3, 1, 1)
++        # [수정] 원본은 밴드 4 를 박아 두었다.  저장소 train.py 가 Net(4) 로 부르므로
++        # 원본에서는 feature width 와 밴드 수가 우연히 같았다.  그 관례를 그대로 따라
++        # feature width = 밴드 수로 두면 4밴드에서는 원본과 완전히 동일하고 8밴드로도 열린다.
++        self.conv_p = nn.Conv2d(channels, channels, 3, 1, 1)
+         self.conv_p1 = nn.Conv2d(1, channels, 3, 1, 1)
+         self.block = SpaFre(channels)
+         self.block1 = SpaFremid(channels)
+@@ -456,7 +465,7 @@ class Net(nn.Module):
+         super(Net, self).__init__()
+         self.process = FeatureProcess(channels)
+         # self.cdc = nn.Sequential(nn.Conv2d(1, 4, 1, 1, 0), cdcconv(4, 4), cdcconv(4, 4))
+-        self.refine = Refine(channels, 4)
++        self.refine = Refine(channels, channels)   # [수정] 출력 밴드 4 고정 -> channels
+ 
+     def forward(self, ms, pan): # i
+         # ms  - low-resolution multi-spectral image [N,C,h,w]

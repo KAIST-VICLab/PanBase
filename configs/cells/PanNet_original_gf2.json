@@ -1,0 +1,37 @@
+{
+ "method": "PanNet",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "PanNet",
+ "weights": "backbones/PanNet/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 126000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model PanNet --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanNet --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/PanNet/original/gf2_reduced",
+  "python scripts/infer.py --method PanNet --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/PanNet/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 36.8740234375,
+    "ssim": 0.9360992312431335,
+    "sam": 1.3294130636838868,
+    "ergas": 1.3417106866836548,
+    "q2n": 0.9371431485792783
+   },
+   "fr": {
+    "d_lambda": 0.004147605725972387,
+    "d_s": 0.08111619677678825,
+    "hqnr": 0.9150862244841329
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

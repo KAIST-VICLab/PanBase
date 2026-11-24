@@ -1,0 +1,53 @@
+{
+ "method": "MMMamba",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "MMMamba",
+ "weights": "backbones/MMMamba/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1128000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MMMamba --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MMMamba --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/MMMamba/original/wv3_reduced",
+  "python scripts/infer.py --method MMMamba --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/MMMamba/original/wv3_full",
+  "python scripts/infer.py --method MMMamba --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/MMMamba/original/wv2_reduced",
+  "python scripts/infer.py --method MMMamba --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/MMMamba/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 36.234947204589844,
+    "ssim": 0.9689544439315796,
+    "sam": 3.292667231461499,
+    "ergas": 2.551828145980835,
+    "q2n": 0.9149837509199727
+   },
+   "fr": {
+    "d_lambda": 0.004545166284865537,
+    "d_s": 0.043633013889018926,
+    "hqnr": 0.952025440270423
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.89447593688965,
+    "ssim": 0.8224398493766785,
+    "sam": 5.463401555428955,
+    "ergas": 4.453757286071777,
+    "q2n": 0.8372416821516513
+   },
+   "fr": {
+    "d_lambda": 0.01287437944525276,
+    "d_s": 0.0554272893624808,
+    "hqnr": 0.9323871226823975
+   }
+  }
+ },
+ "runtime_note": "needs mamba_ssm (GPU).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

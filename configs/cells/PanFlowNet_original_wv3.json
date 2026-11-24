@@ -1,0 +1,53 @@
+{
+ "method": "PanFlowNet",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "PanFlowNet",
+ "weights": "backbones/PanFlowNet/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1080000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model PanFlowNet --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/PanFlowNet/original/wv3_reduced",
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/PanFlowNet/original/wv3_full",
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/PanFlowNet/original/wv2_reduced",
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/PanFlowNet/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 35.76362228393555,
+    "ssim": 0.9656774401664734,
+    "sam": 3.6076032617063873,
+    "ergas": 2.6320927143096924,
+    "q2n": 0.9034015163729012
+   },
+   "fr": {
+    "d_lambda": 0.027646631220289354,
+    "d_s": 0.0565464807761973,
+    "hqnr": 0.9177817571385528
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 27.779117584228516,
+    "ssim": 0.8060310482978821,
+    "sam": 6.173973608828706,
+    "ergas": 5.159189701080322,
+    "q2n": 0.7883453126203871
+   },
+   "fr": {
+    "d_lambda": 0.07446779037670251,
+    "d_s": 0.060910455478461856,
+    "hqnr": 0.8691171667519144
+   }
+  }
+ },
+ "runtime_note": "stochastic (normalising-flow sampling); torch.manual_seed(0) before each test image reproduces the table PSNR within 0.15 dB.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

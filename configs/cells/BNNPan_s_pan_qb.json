@@ -1,0 +1,87 @@
+{
+ "method": "BNNPan",
+ "arm": "s_pan",
+ "train_set": "qb",
+ "registry_spec": "BNNPan-in",
+ "weights": "backbones/BNNPan/s_pan/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1342000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 32,
+  "code_digest": "d91c6f062d5b4e8f",
+  "epochs": 3000,
+  "eval_after_frac": 0.6666666666666666,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 3196488,
+  "per_dataset": {
+   "gf2": {
+    "opt": {
+     "lr": 0.0001
+    }
+   },
+   "qb": {
+    "opt": {
+     "lr": 0.0001
+    }
+   },
+   "wv3": {
+    "opt": {
+     "lr": 0.0003
+    }
+   }
+  },
+  "sched": null,
+  "skip": "S_PAN",
+  "skipvar": {
+   "base": "BNNPan",
+   "extra": "L",
+   "kind": "in",
+   "sites": [
+    "net.conv_head"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset qb --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model BNNPan-in --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_PAN --tag _skipS_PAN --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method BNNPan --arm s_pan --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/BNNPan/s_pan/qb_reduced",
+  "python scripts/infer.py --method BNNPan --arm s_pan --train-set qb --split full --weights weights/PanBase --out-dir outputs/BNNPan/s_pan/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 37.712623596191406,
+    "ssim": 0.956953227519989,
+    "sam": 4.698420386878562,
+    "ergas": 3.8324615955352783,
+    "q2n": 0.9325888954812367
+   },
+   "fr": {
+    "d_lambda": 0.030713735445014663,
+    "d_s": 0.09227728670296668,
+    "hqnr": 0.8799337404774061
+   }
+  }
+ },
+ "runtime_note": "stochastic at inference; torch.manual_seed(0) before each test image.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

@@ -1,0 +1,65 @@
+{
+ "method": "MSDDN",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "MSDDN",
+ "weights": "backbones/MSDDN/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1754000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "cb22683aec1e8595",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1_sum_over_2b",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0005
+  },
+  "out_index": null,
+  "params": 670124,
+  "per_dataset": null,
+  "sched": {
+   "gamma": 0.1,
+   "kind": "step",
+   "step_size": 200
+  },
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model MSDDN --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MSDDN --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/MSDDN/original/qb_reduced",
+  "python scripts/infer.py --method MSDDN --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/MSDDN/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 36.47296142578125,
+    "ssim": 0.94593745470047,
+    "sam": 5.291384736721854,
+    "ergas": 4.428480625152588,
+    "q2n": 0.9198891011517837
+   },
+   "fr": {
+    "d_lambda": 0.05033609332501214,
+    "d_s": 0.041540062993216095,
+    "hqnr": 0.9103907037391974
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU. On GPU this network's output differs from the CPU result by 0.9-10 dB PSNR even with TF32 disabled (FFT branch; checked 2026-11-23), so evaluate it on CPU (about 15-30 s per test set).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

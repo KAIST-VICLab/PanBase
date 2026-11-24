@@ -1,0 +1,37 @@
+{
+ "method": "MSDDN",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "MSDDN",
+ "weights": "backbones/MSDDN/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 2412000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MSDDN --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MSDDN --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/MSDDN/original/gf2_reduced",
+  "python scripts/infer.py --method MSDDN --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/MSDDN/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 38.72003936767578,
+    "ssim": 0.9663565754890442,
+    "sam": 1.150582563534131,
+    "ergas": 1.0693817138671875,
+    "q2n": 0.9486250093193778
+   },
+   "fr": {
+    "d_lambda": 0.01420763505281426,
+    "d_s": 0.04155046745803018,
+    "hqnr": 0.9448349406783819
+   }
+  }
+ },
+ "runtime_note": "RR table values were computed in float32 on CPU. On GPU this network's output differs from the CPU result by 0.9-10 dB PSNR even with TF32 disabled (FFT branch; checked 2026-11-23), so evaluate it on CPU (about 15-30 s per test set).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

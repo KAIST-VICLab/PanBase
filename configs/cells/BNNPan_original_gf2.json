@@ -1,0 +1,78 @@
+{
+ "method": "BNNPan",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "BNNPan",
+ "weights": "backbones/BNNPan/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1706000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 32,
+  "code_digest": "3ac9c6657a167d40",
+  "epochs": 3000,
+  "eval_after_frac": 0.6666666666666666,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 3194184,
+  "per_dataset": {
+   "gf2": {
+    "opt": {
+     "lr": 0.0001
+    }
+   },
+   "qb": {
+    "opt": {
+     "lr": 0.0001
+    }
+   },
+   "wv3": {
+    "opt": {
+     "lr": 0.0003
+    }
+   }
+  },
+  "sched": null,
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model BNNPan --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method BNNPan --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/BNNPan/original/gf2_reduced",
+  "python scripts/infer.py --method BNNPan --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/BNNPan/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 42.11768341064453,
+    "ssim": 0.9774273037910461,
+    "sam": 0.8145621067049771,
+    "ergas": 0.7207576036453247,
+    "q2n": 0.9777988080916925
+   },
+   "fr": {
+    "d_lambda": 0.0035791210353350754,
+    "d_s": 0.06939725377660579,
+    "hqnr": 0.9272808775346055
+   }
+  }
+ },
+ "runtime_note": "stochastic at inference; torch.manual_seed(0) before each test image.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

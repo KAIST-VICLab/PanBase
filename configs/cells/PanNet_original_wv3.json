@@ -1,0 +1,53 @@
+{
+ "method": "PanNet",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "PanNet",
+ "weights": "backbones/PanNet/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 56000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model PanNet --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanNet --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/PanNet/original/wv3_reduced",
+  "python scripts/infer.py --method PanNet --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/PanNet/original/wv3_full",
+  "python scripts/infer.py --method PanNet --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/PanNet/original/wv2_reduced",
+  "python scripts/infer.py --method PanNet --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/PanNet/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 34.2895622253418,
+    "ssim": 0.9466689229011536,
+    "sam": 4.240444584628982,
+    "ergas": 3.1424598693847656,
+    "q2n": 0.8719326110643693
+   },
+   "fr": {
+    "d_lambda": 0.010666859701719761,
+    "d_s": 0.056415118593102095,
+    "hqnr": 0.9336645608430747
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.508325576782227,
+    "ssim": 0.8095235824584961,
+    "sam": 5.812349349852072,
+    "ergas": 4.63557767868042,
+    "q2n": 0.822965197213693
+   },
+   "fr": {
+    "d_lambda": 0.01691249523646452,
+    "d_s": 0.015809694787856588,
+    "hqnr": 0.967656632764476
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

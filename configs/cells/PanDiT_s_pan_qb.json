@@ -1,0 +1,95 @@
+{
+ "method": "PanDiT",
+ "arm": "s_pan",
+ "train_set": "qb",
+ "registry_spec": "PanDiT-in",
+ "weights": "backbones/PanDiT/s_pan/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 36000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 6,
+  "code_digest": "724e5896c1885204",
+  "epochs": 70,
+  "eval_after_frac": 0.099,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30+tile64",
+  "grad_clip": 1.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adamw",
+   "lr": 5e-05,
+   "weight_decay": 0.0001
+  },
+  "out_index": null,
+  "params": 392708120,
+  "per_dataset": {
+   "gf2": {
+    "epochs": 61,
+    "sched": {
+     "milestones": [
+      30
+     ]
+    }
+   },
+   "qb": {
+    "epochs": 70,
+    "sched": {
+     "milestones": [
+      35
+     ]
+    }
+   }
+  },
+  "sched": {
+   "gamma": 0.2,
+   "kind": "multistep",
+   "milestones": [
+    35
+   ]
+  },
+  "skip": "S_PAN",
+  "skipvar": {
+   "base": "PanDiT",
+   "extra": "L",
+   "kind": "in",
+   "sites": [
+    "net.dit.layers.0.cond_inj.ms_conv.body.1",
+    "ema_net.dit.layers.0.cond_inj.ms_conv.body.1"
+   ]
+  },
+  "val_cap": 64
+ },
+ "prepare": "python scripts/make_bases.py --dataset qb --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model PanDiT-in --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_PAN --tag _skipS_PAN --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanDiT --arm s_pan --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/PanDiT/s_pan/qb_reduced",
+  "python scripts/infer.py --method PanDiT --arm s_pan --train-set qb --split full --weights weights/PanBase --out-dir outputs/PanDiT/s_pan/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 36.6744270324707,
+    "ssim": 0.9480953216552734,
+    "sam": 4.983777038720085,
+    "ergas": 4.320631980895996,
+    "q2n": 0.9244225852300069
+   },
+   "fr": {
+    "d_lambda": 0.005947707760183207,
+    "d_s": 0.041696776135276545,
+    "hqnr": 0.9526372604707879
+   }
+  }
+ },
+ "runtime_note": "diffusion sampler; with torch.manual_seed(0) before each test image a CUDA run reproduces the table PSNR exactly (re-runs of 2026-11-23/24); CPU sampling draws a different random stream. About 90-110 s per 20-image test set on an RTX 4090, within 6 GB of GPU memory; 1-2.5 h on a 16-core CPU.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

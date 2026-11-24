@@ -1,0 +1,37 @@
+{
+ "method": "MMMamba",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "MMMamba",
+ "weights": "backbones/MMMamba/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1774000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MMMamba --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MMMamba --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/MMMamba/original/qb_reduced",
+  "python scripts/infer.py --method MMMamba --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/MMMamba/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 36.97137451171875,
+    "ssim": 0.9561255574226379,
+    "sam": 4.739164644965798,
+    "ergas": 4.194819927215576,
+    "q2n": 0.926885602709618
+   },
+   "fr": {
+    "d_lambda": 0.0632958904506195,
+    "d_s": 0.1585780100460174,
+    "hqnr": 0.7884683290024485
+   }
+  }
+ },
+ "runtime_note": "needs mamba_ssm (GPU).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

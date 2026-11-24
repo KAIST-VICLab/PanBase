@@ -1,0 +1,88 @@
+{
+ "method": "LAGConv",
+ "arm": "s_pan",
+ "train_set": "wv3",
+ "registry_spec": "LAGConv-in",
+ "weights": "backbones/LAGConv/s_pan/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 152000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 32,
+  "code_digest": "ca9772ce7e4330b1",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "mse",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0003
+  },
+  "out_index": null,
+  "params": 154605,
+  "per_dataset": null,
+  "sched": null,
+  "skip": "S_PAN",
+  "skipvar": {
+   "base": "LAGConv",
+   "extra": "L",
+   "kind": "in",
+   "sites": [
+    "head_conv.0.attention1.0",
+    "head_conv.0.attention3.1",
+    "head_conv.0"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset wv3 --split train,valid,reduced,full && python scripts/make_bases.py --dataset wv2 --split reduced,full",
+ "train": "python train_pancoll.py --model LAGConv-in --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_PAN --tag _skipS_PAN --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method LAGConv --arm s_pan --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/LAGConv/s_pan/wv3_reduced",
+  "python scripts/infer.py --method LAGConv --arm s_pan --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/LAGConv/s_pan/wv3_full",
+  "python scripts/infer.py --method LAGConv --arm s_pan --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/LAGConv/s_pan/wv2_reduced",
+  "python scripts/infer.py --method LAGConv --arm s_pan --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/LAGConv/s_pan/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 37.343570709228516,
+    "ssim": 0.9719475507736206,
+    "sam": 3.0486731095055957,
+    "ergas": 2.2142186164855957,
+    "q2n": 0.9141492185637876
+   },
+   "fr": {
+    "d_lambda": 0.005629653897161002,
+    "d_s": 0.03684929404018637,
+    "hqnr": 0.9577410561720283
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 29.17477035522461,
+    "ssim": 0.8340786695480347,
+    "sam": 5.475393347308555,
+    "ergas": 4.34464168548584,
+    "q2n": 0.8409567565515165
+   },
+   "fr": {
+    "d_lambda": 0.012016184931272295,
+    "d_s": 0.08567517136384026,
+    "hqnr": 0.9032779615446289
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

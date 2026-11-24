@@ -1,0 +1,37 @@
+{
+ "method": "UTeRM",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "UTeRM",
+ "weights": "backbones/UTeRM/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1704000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model UTeRM --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method UTeRM --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/UTeRM/original/qb_reduced",
+  "python scripts/infer.py --method UTeRM --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/UTeRM/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 37.2608757019043,
+    "ssim": 0.9544124603271484,
+    "sam": 4.684012087782994,
+    "ergas": 4.037262916564941,
+    "q2n": 0.9278069043447534
+   },
+   "fr": {
+    "d_lambda": 0.019701679914475023,
+    "d_s": 0.032351598600509006,
+    "hqnr": 0.9486547639363083
+   }
+  }
+ },
+ "runtime_note": "upstream code allocates on CUDA inside forward; evaluated on non-overlapping 64x64 tiles (harness.eval_forward).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

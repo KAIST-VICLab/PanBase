@@ -1,0 +1,13 @@
+diff --git a/models/PanVIT_modules.py b/models/PanVIT_modules.py
+index 7d96887..95398b4 100644
+--- a/models/PanVIT_modules.py
++++ b/models/PanVIT_modules.py
+@@ -4,7 +4,7 @@ import torch.nn as nn
+ import torch.fft
+ from einops import repeat
+ from einops.layers.torch import Rearrange
+-from torchsummary import summary
++# from torchsummary import summary  # unused; not installed
+ import math
+ from timm.models.vision_transformer import Attention, Mlp
+ 

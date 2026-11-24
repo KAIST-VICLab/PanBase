@@ -1,0 +1,75 @@
+{
+ "method": "TS-Pan",
+ "arm": "s_ms",
+ "train_set": "qb",
+ "registry_spec": "TS-Pan-in",
+ "weights": "backbones/TS-Pan/s_ms/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 196000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 16,
+  "code_digest": "6b29d4506892777a",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.001,
+   "weight_decay": 0.0
+  },
+  "out_index": null,
+  "params": 457469,
+  "per_dataset": null,
+  "sched": {
+   "gamma": 0.5,
+   "kind": "step",
+   "step_size": 100
+  },
+  "skip": "S_MS",
+  "skipvar": {
+   "base": "TS-Pan-sk",
+   "extra": "S",
+   "kind": "in",
+   "sites": [
+    "pan_pre_exp.0"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset qb --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model TS-Pan-in --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_MS --tag _skipS_MS --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method TS-Pan --arm s_ms --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/TS-Pan/s_ms/qb_reduced",
+  "python scripts/infer.py --method TS-Pan --arm s_ms --train-set qb --split full --weights weights/PanBase --out-dir outputs/TS-Pan/s_ms/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 38.48856735229492,
+    "ssim": 0.9635616540908813,
+    "sam": 4.366049095115609,
+    "ergas": 3.4958107471466064,
+    "q2n": 0.9391447225074945
+   },
+   "fr": {
+    "d_lambda": 0.00953762242450507,
+    "d_s": 0.12385424525495987,
+    "hqnr": 0.867701656763359
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

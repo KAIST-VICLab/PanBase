@@ -1,0 +1,17 @@
+diff --git a/model/mmmamba.py b/model/mmmamba.py
+index 20915d9..9bdef2d 100644
+--- a/model/mmmamba.py
++++ b/model/mmmamba.py
+@@ -616,10 +616,10 @@ class Net(nn.Module):
+         self.stride=1
+         self.patch_size=1
+         self.pan_encoder = nn.Sequential(nn.Conv2d(1,base_filter,3,1,1),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter))
+-        self.ms_encoder = nn.Sequential(nn.Conv2d(4,base_filter,3,1,1),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter))
++        self.ms_encoder = nn.Sequential(nn.Conv2d(num_channels,base_filter,3,1,1),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter),HinResBlock(base_filter,base_filter))
+         self.mm_mamba = nn.Sequential(MMMamba(base_filter,'BiasFree'),MMMamba(base_filter,'BiasFree'),MMMamba(base_filter,'BiasFree'),MMMamba(base_filter,'BiasFree'),MMMamba(base_filter,'BiasFree'))
+         self.simple_fusion = nn.Conv2d(base_filter*2,base_filter,1,1,0)
+-        self.ms_head = Refine(base_filter,4)
++        self.ms_head = Refine(base_filter,num_channels)
+     def forward(self, ms, _, pan):
+         ms_bic = F.interpolate(ms,scale_factor=4)
+         ms_f = self.ms_encoder(ms_bic)

@@ -1,0 +1,53 @@
+{
+ "method": "MutInf",
+ "arm": "original",
+ "train_set": "wv3",
+ "registry_spec": "MutInf",
+ "weights": "backbones/MutInf/original/wv3/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1070000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MutInf --dataset wv3 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MutInf --arm original --train-set wv3 --split reduced --weights weights/PanBase --out-dir outputs/MutInf/original/wv3_reduced",
+  "python scripts/infer.py --method MutInf --arm original --train-set wv3 --split full --weights weights/PanBase --out-dir outputs/MutInf/original/wv3_full",
+  "python scripts/infer.py --method MutInf --arm original --train-set wv3 --eval-set wv2 --split reduced --weights weights/PanBase --out-dir outputs/MutInf/original/wv2_reduced",
+  "python scripts/infer.py --method MutInf --arm original --train-set wv3 --eval-set wv2 --split full --weights weights/PanBase --out-dir outputs/MutInf/original/wv2_full"
+ ],
+ "table_metrics": {
+  "wv3": {
+   "rr": {
+    "psnr": 35.771217346191406,
+    "ssim": 0.9640671610832214,
+    "sam": 3.5489286796281307,
+    "ergas": 2.715531826019287,
+    "q2n": 0.9029911342376986
+   },
+   "fr": {
+    "d_lambda": 0.03200922445110445,
+    "d_s": 0.057729305618342344,
+    "hqnr": 0.9125800357183067
+   }
+  },
+  "wv2": {
+   "rr": {
+    "psnr": 28.872665405273438,
+    "ssim": 0.8398768305778503,
+    "sam": 5.468980434053167,
+    "ergas": 4.488976955413818,
+    "q2n": 0.8306073083072455
+   },
+   "fr": {
+    "d_lambda": 0.06335745015469005,
+    "d_s": 0.03712938143979796,
+    "hqnr": 0.9019531742345392
+   }
+  }
+ },
+ "runtime_note": "upstream code calls .cuda(); the released code leaves four scalars of utils/CDC.py uninitialised -- they are part of this state dict, so inference from this checkpoint is deterministic.",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

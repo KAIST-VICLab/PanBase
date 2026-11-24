@@ -1,0 +1,91 @@
+{
+ "method": "PAN-Crafter",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "PAN-Crafter",
+ "weights": "backbones/PAN-Crafter/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 49973,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": {
+   "by": "train_step",
+   "crop": true,
+   "crop_ratio": 0.75,
+   "hflip": true,
+   "interp": "cv2.INTER_CUBIC",
+   "ms_size": 16,
+   "rot": true,
+   "src": "feeders/feeder.py:64-111",
+   "vflip": true
+  },
+  "aux_weights": null,
+  "batch": 48,
+  "code_digest": "f231cf398d8d4d79",
+  "epochs": 121,
+  "eval_after_frac": null,
+  "eval_bs": null,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1_switch",
+  "opt": {
+   "kind": "adamw",
+   "lr": 0.0001,
+   "weight_decay": 0.01
+  },
+  "out_index": null,
+  "params": 9902756,
+  "per_dataset": {
+   "gf2": {
+    "epochs": 121,
+    "sched": {
+     "T_max": 121
+    }
+   },
+   "qb": {
+    "epochs": 140,
+    "sched": {
+     "T_max": 140
+    }
+   },
+   "wv3": {
+    "epochs": 246,
+    "sched": {
+     "T_max": 246
+    }
+   }
+  },
+  "sched": {
+   "T_max": 121,
+   "eta_min": 0.0,
+   "kind": "cosine"
+  },
+  "val_cap": null
+ },
+ "prepare": null,
+ "train": "python train_pancoll.py --model PAN-Crafter --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PAN-Crafter --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/PAN-Crafter/original/gf2_reduced",
+  "python scripts/infer.py --method PAN-Crafter --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/PAN-Crafter/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 44.32558059692383,
+    "ssim": 0.985715389251709,
+    "sam": 0.6474070486184542,
+    "ergas": 0.5658999681472778,
+    "q2n": 0.9860088568109809
+   },
+   "fr": {
+    "d_lambda": 0.0041016621008613365,
+    "d_s": 0.0254208888300974,
+    "hqnr": 0.9705878605157432
+   }
+  }
+ },
+ "runtime_note": "needs ctx['lpan'], the MS-resolution low-pass PAN distributed with the upstream repository; WorldView-2 has none, the table synthesises it (lpan_synth.lpan_from_pan).",
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

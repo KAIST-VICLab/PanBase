@@ -1,0 +1,37 @@
+{
+ "method": "MDCUN",
+ "arm": "original",
+ "train_set": "gf2",
+ "registry_spec": "MDCUN",
+ "weights": "backbones/MDCUN/original/gf2/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 582000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model MDCUN --dataset gf2 --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MDCUN --arm original --train-set gf2 --split reduced --weights weights/PanBase --out-dir outputs/MDCUN/original/gf2_reduced",
+  "python scripts/infer.py --method MDCUN --arm original --train-set gf2 --split full --weights weights/PanBase --out-dir outputs/MDCUN/original/gf2_full"
+ ],
+ "table_metrics": {
+  "gf2": {
+   "rr": {
+    "psnr": 42.042724609375,
+    "ssim": 0.9767847061157227,
+    "sam": 0.8055773959849304,
+    "ergas": 0.7447898983955383,
+    "q2n": 0.9783199118114003
+   },
+   "fr": {
+    "d_lambda": 0.0005811324853586319,
+    "d_s": 0.04672046012674156,
+    "hqnr": 0.9527262636087211
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

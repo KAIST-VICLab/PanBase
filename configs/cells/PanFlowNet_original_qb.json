@@ -1,0 +1,37 @@
+{
+ "method": "PanFlowNet",
+ "arm": "original",
+ "train_set": "qb",
+ "registry_spec": "PanFlowNet",
+ "weights": "backbones/PanFlowNet/original/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1780000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": null,
+ "recipe": null,
+ "prepare": null,
+ "train": "python train_pancoll.py --model PanFlowNet --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/PanFlowNet/original/qb_reduced",
+  "python scripts/infer.py --method PanFlowNet --arm original --train-set qb --split full --weights weights/PanBase --out-dir outputs/PanFlowNet/original/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 36.2273063659668,
+    "ssim": 0.9418607950210571,
+    "sam": 5.13635704649685,
+    "ergas": 4.723269462585449,
+    "q2n": 0.9123483226593919
+   },
+   "fr": {
+    "d_lambda": 0.07124922213785359,
+    "d_s": 0.08130601336410184,
+    "hqnr": 0.8533287439113575
+   }
+  }
+ },
+ "runtime_note": "stochastic (normalising-flow sampling); torch.manual_seed(0) before each test image reproduces the table PSNR within 0.15 dB.",
+ "stochastic": true,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

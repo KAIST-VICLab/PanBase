@@ -1,0 +1,70 @@
+{
+ "method": "MDCUN",
+ "arm": "s_ms",
+ "train_set": "qb",
+ "registry_spec": "MDCUN-in",
+ "weights": "backbones/MDCUN/s_ms/qb/model.safetensors (Hugging Face: JeonghyeokDo/PanBase)",
+ "selected_step": 1038000,
+ "selection": "best validation PSNR (valid split of PanCollection)",
+ "train_seed": 20260919,
+ "recipe": {
+  "aug": null,
+  "aux_weights": null,
+  "batch": 4,
+  "code_digest": "76316be5529f337b",
+  "epochs": 500,
+  "eval_after_frac": null,
+  "eval_bs": 2,
+  "eval_protocol": "rr_dim_cut30",
+  "grad_clip": 10.0,
+  "loss": "l1_sum_over_2b",
+  "opt": {
+   "betas": [
+    0.9,
+    0.999
+   ],
+   "kind": "adam",
+   "lr": 0.0005
+  },
+  "out_index": null,
+  "params": 129595,
+  "per_dataset": null,
+  "sched": null,
+  "skip": "S_MS",
+  "skipvar": {
+   "base": "MDCUN-sk",
+   "extra": "S",
+   "kind": "in",
+   "sites": [
+    "rm1.block.0.conv"
+   ]
+  },
+  "val_cap": null
+ },
+ "prepare": "python scripts/make_bases.py --dataset qb --split train,valid,reduced,full",
+ "train": "python train_pancoll.py --model MDCUN-in --dataset qb --device cuda:0 --max_hours 48 --eval_every 2000 --skip S_MS --tag _skipS_MS --results_dir results_panbase",
+ "train_note": "training runs in segments of at most 48 h; continue an interrupted run with the same command plus --resume. The recipe is the method's published one, identical for the three arms.",
+ "infer": [
+  "python scripts/infer.py --method MDCUN --arm s_ms --train-set qb --split reduced --weights weights/PanBase --out-dir outputs/MDCUN/s_ms/qb_reduced",
+  "python scripts/infer.py --method MDCUN --arm s_ms --train-set qb --split full --weights weights/PanBase --out-dir outputs/MDCUN/s_ms/qb_full"
+ ],
+ "table_metrics": {
+  "qb": {
+   "rr": {
+    "psnr": 38.077232360839844,
+    "ssim": 0.9606488943099976,
+    "sam": 4.445928735607451,
+    "ergas": 3.673226833343506,
+    "q2n": 0.9364072794148275
+   },
+   "fr": {
+    "d_lambda": 0.02125678472579421,
+    "d_s": 0.04266943648945225,
+    "hqnr": 0.9369900298449882
+   }
+  }
+ },
+ "runtime_note": null,
+ "stochastic": false,
+ "inference_seed": "torch.manual_seed(0) immediately before each test image"
+}

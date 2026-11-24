@@ -1,0 +1,153 @@
+diff --git a/model/HFG_S2EN.py b/model/HFG_S2EN.py
+index 73a0502..426c37d 100644
+--- a/model/HFG_S2EN.py
++++ b/model/HFG_S2EN.py
+@@ -57,10 +57,9 @@ class SpanConv(nn.Module):
+         return out
+ 
+ class HFG_S2EN(nn.Module):
+-    def __init__(self,in_channels,out_channels,num_heads,  win_size, ffn_expansion_factor=2, bias=False, LayerNorm_type="BiasFree"):
++    def __init__(self,in_channels,out_channels,num_heads,  win_size, ffn_expansion_factor=2, bias=False, LayerNorm_type="BiasFree", ms_dim=8):
+         super(HFG_S2EN,self).__init__()
+         pan_dim = 1
+-        ms_dim = 8
+         pan_ms_dim = pan_dim + ms_dim
+         self.in_channels = in_channels
+         self.out_channels = out_channels
+diff --git a/model/rwkv.py b/model/rwkv.py
+index d6054f3..eb298f7 100644
+--- a/model/rwkv.py
++++ b/model/rwkv.py
+@@ -5,14 +5,23 @@ import torch.nn as nn
+ from torch.nn import functional as F
+ from einops import rearrange
+ 
+-T_MAX = 256*256 ### train 64*64 test 256*256 512*512
++T_MAX = int(os.environ.get("TSPAN_T_MAX", 256*256)) ### train 64*64 test 256*256 512*512
++# 상한을 둘로 나눈다 (수학 불변, 빌드 배관만).  -DTmax 는 kernel_backward 의 스레드별 지역 배열
++# `F y[IDEAL_T_LEN], z[..], zexp[..]` (IDEAL_T_LEN = Tmax/32, cuda/wkv_cuda.cu:7,130) 의 크기만 정하고
++# kernel_forward 는 Tmax 를 쓰지 않는다.  드라이버는 첫 backward 때 이 스택 프레임 x 상주 가능 스레드
++# 수만큼 지역 메모리를 잡아 두는데 torch 할당기 통계에는 안 잡힌다 -- Tmax 262144 면 프레임이
++# 스레드당 ~98KB 라 4090 에서 12~18GiB 다.  backward(=학습)는 저자 학습 크기 64*64 (T=4096) 로 짓고,
++# forward 는 커널이 아닌 이 assert 만 T_MAX(평가 512*512 = 262144 까지) 로 막는다.
++T_MAX_BWD = int(os.environ.get("TSPAN_T_MAX_BWD", 64*64))
+ 
+ from torch.utils.cpp_extension import load
+ 
+-wkv_cuda = load(name="wkv", sources=["./model/cuda/wkv_op.cpp", "./model/cuda/wkv_cuda.cu"],
++_CUDA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cuda")
++# 이름에 backward 상한을 넣어 예전 wkv_<T_MAX> 빌드(Tmax=T_MAX)를 절대 다시 쓰지 않는다.
++wkv_cuda = load(name=f"wkv_bwd{T_MAX_BWD}", sources=[os.path.join(_CUDA_DIR, "wkv_op.cpp"), os.path.join(_CUDA_DIR, "wkv_cuda.cu")],
+                 verbose=True,
+                 extra_cuda_cflags=['-res-usage', '--maxrregcount 60', '--use_fast_math', '-O3', '-Xptxas -O3',
+-                                   f'-DTmax={T_MAX}'])
++                                   f'-DTmax={T_MAX_BWD}'])
+ 
+ 
+ class WKV(torch.autograd.Function):
+@@ -21,7 +30,7 @@ class WKV(torch.autograd.Function):
+         ctx.B = B
+         ctx.T = T
+         ctx.C = C
+-        assert T <= T_MAX
++        assert T <= T_MAX, f"WKV forward: T={T} > TSPAN_T_MAX={T_MAX}"
+         assert B * C % min(C, 1024) == 0
+ 
+         half_mode = (w.dtype == torch.half)
+@@ -31,8 +40,11 @@ class WKV(torch.autograd.Function):
+         u = u.float().contiguous()
+         k = k.float().contiguous()
+         v = v.float().contiguous()
+-        y = torch.empty((B, T, C), device='cuda', memory_format=torch.contiguous_format)
+-        wkv_cuda.forward(B, T, C, w, u, k, v, y)
++        y = torch.empty((B, T, C), device=v.device, memory_format=torch.contiguous_format)  # was device='cuda' (= 항상 cuda:0)
++        # 확장 모듈(cuda/wkv_op.cpp)에 CUDAGuard 가 없어 커널이 **현재 디바이스**에서
++        # 뜬다.  cuda:1 텐서를 cuda:0 컨텍스트에서 쏘면 잘못된 포인터가 된다.
++        with torch.cuda.device(v.device):
++            wkv_cuda.forward(B, T, C, w, u, k, v, y)
+         if half_mode:
+             y = y.half()
+         elif bf_mode:
+@@ -44,22 +56,25 @@ class WKV(torch.autograd.Function):
+         B = ctx.B
+         T = ctx.T
+         C = ctx.C
+-        assert T <= T_MAX
++        # 컴파일된 지역 배열 크기(-DTmax=T_MAX_BWD) 가 backward 의 진짜 상한이다 -- 넘으면 범위 밖 쓰기.
++        assert T <= T_MAX_BWD, f"WKV backward: T={T} > compiled Tmax={T_MAX_BWD} (TSPAN_T_MAX_BWD)"
+         assert B * C % min(C, 1024) == 0
+         w, u, k, v = ctx.saved_tensors
+-        gw = torch.zeros((B, C), device='cuda').contiguous()
+-        gu = torch.zeros((B, C), device='cuda').contiguous()
+-        gk = torch.zeros((B, T, C), device='cuda').contiguous()
+-        gv = torch.zeros((B, T, C), device='cuda').contiguous()
++        _dev = w.device                    # was device='cuda' (= 항상 cuda:0)
++        gw = torch.zeros((B, C), device=_dev).contiguous()
++        gu = torch.zeros((B, C), device=_dev).contiguous()
++        gk = torch.zeros((B, T, C), device=_dev).contiguous()
++        gv = torch.zeros((B, T, C), device=_dev).contiguous()
+         half_mode = (w.dtype == torch.half)
+         bf_mode = (w.dtype == torch.bfloat16)
+-        wkv_cuda.backward(B, T, C,
+-                          w.float().contiguous(),
+-                          u.float().contiguous(),
+-                          k.float().contiguous(),
+-                          v.float().contiguous(),
+-                          gy.float().contiguous(),
+-                          gw, gu, gk, gv)
++        with torch.cuda.device(_dev):          # forward 와 같은 이유
++            wkv_cuda.backward(B, T, C,
++                              w.float().contiguous(),
++                              u.float().contiguous(),
++                              k.float().contiguous(),
++                              v.float().contiguous(),
++                              gy.float().contiguous(),
++                              gw, gu, gk, gv)
+         if half_mode:
+             gw = torch.sum(gw.half(), dim=0)
+             gu = torch.sum(gu.half(), dim=0)
+@@ -75,7 +90,8 @@ class WKV(torch.autograd.Function):
+ 
+ 
+ def RUN_CUDA(B, T, C, w, u, k, v):
+-    return WKV.apply(B, T, C, w.cuda(), u.cuda(), k.cuda(), v.cuda())
++    _dev = k.device                        # was .cuda() (= 항상 cuda:0 으로 끌어옴)
++    return WKV.apply(B, T, C, w.to(_dev), u.to(_dev), k.to(_dev), v.to(_dev))
+ 
+ 
+ def q_shift(input, shift_pixel=1, gamma=1/4, patch_resolution=None):
+diff --git a/model/tspan.py b/model/tspan.py
+index c203d03..7f560de 100644
+--- a/model/tspan.py
++++ b/model/tspan.py
+@@ -1,7 +1,7 @@
+ import torch
+ import torch.nn as nn
+ import torch.nn.functional as F
+-from model.HF_guided import HFG_S2EN
++from model.HFG_S2EN import HFG_S2EN
+ import torch.nn.init as init
+ 
+ class ResBlock(nn.Module):
+@@ -228,10 +228,10 @@ class Net(nn.Module):
+                  win_size = 4,
+                  ffn_expansion_factor = 2,
+                  bias = False,
+-                 LayerNorm_type = 'BiasFree'
++                 LayerNorm_type = 'BiasFree',
++                 ms_dim = 8
+                  ):
+         super().__init__()
+-        ms_dim = 8
+         self.up_sample = Upsample(ms_dim)
+ 
+         self.pan_pre_exp = nn.Sequential(
+@@ -252,7 +252,7 @@ class Net(nn.Module):
+             nn.Conv2d(dim*2,dim,1,1,0,groups=dim),
+             nn.LeakyReLU(0.1)
+         )
+-        self.process = HFG_S2EN(dim, dim, num_heads=num_heads, win_size=win_size, ffn_expansion_factor=ffn_expansion_factor, LayerNorm_type=LayerNorm_type)
++        self.process = HFG_S2EN(dim, dim, num_heads=num_heads, win_size=win_size, ffn_expansion_factor=ffn_expansion_factor, LayerNorm_type=LayerNorm_type, ms_dim=ms_dim)
+         self.post = nn.Conv2d(dim,ms_dim,1,1,0)
+ 
+     def forward(self, ms, pan):
